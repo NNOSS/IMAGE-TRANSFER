@@ -34,13 +34,13 @@ def build_parser():
     parser = ArgumentParser()
     parser.add_argument('--content',
             dest='content', help='content image',
-            metavar='CONTENT', required=True)
+            metavar='CONTENT', required=False)
     parser.add_argument('--style',
             dest='style', help='style image',
             metavar='STYLE', required=True)
     parser.add_argument('--output',
             dest='output', help='output path',
-            metavar='OUTPUT', required=True)
+            metavar='OUTPUT', required=False)
     return parser
 
 def preprocess_image(image_path):
@@ -70,8 +70,7 @@ def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding=None, re
     x = BatchNormalization(axis=1)(x)
     return x
 
-
-# parse conten and style input from terminal
+# parse content and style input from terminal
 parser = build_parser()
 options = parser.parse_args()
 content_path = options.content
