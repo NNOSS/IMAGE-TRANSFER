@@ -1,7 +1,11 @@
-from keras import load_model
+from keras.models import load_model
+from keras.preprocessing import image
 from keras import backend as K
 
 from argparse import ArgumentParser
+import numpy as np
+
+img_x, img_y = 256, 256
 
 def build_parser():
     parser = ArgumentParser()
@@ -20,7 +24,6 @@ def preprocess_image(image_path):
     img = image.load_img(image_path, target_size=(img_x, img_y))
     img = image.img_to_array(img)
     img = np.expand_dims(img, axis=0)
-    img = vgg19.preprocess_input(img)
     return img
 
 # parse content and style input from terminal

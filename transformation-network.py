@@ -188,12 +188,13 @@ for imageName in sorted(os.listdir("training/train2014")):
     if img_count % (total_count / 1000) == 0:
         print("0.1% of image loaded")
         break
-img_train = np.concatenate(imList).astype("float32")
+# img_train = np.concatenate(imList).astype("float32")
+img_train = np.asarray(imList, dtype="float32")
 print(img_train.shape)
 
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
-# img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
+img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
 input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
