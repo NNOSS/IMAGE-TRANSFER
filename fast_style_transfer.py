@@ -44,72 +44,72 @@ def custom_loss(content_img, combination_img):
     # get the symbolic outputs of each "key" layer (we gave them unique names).
     outputs_dict = dict([(layer.name, layer.output) for layer in vgg.layers])
 
-def gram_matrix(x):
-    assert K.ndim(x) == 3
-    if K.image_data_format() == 'channels_first':
-        features = K.batch_flatten(x)
-    else:
-        features = K.batch_flatten(K.permute_dimensions(x, (2, 0, 1)))
-    gram = K.dot(features, K.transpose(features))
-    return gram
+    def gram_matrix(x):
+        assert K.ndim(x) == 3
+        if K.image_data_format() == 'channels_first':
+            features = K.batch_flatten(x)
+        else:
+            features = K.batch_flatten(K.permute_dimensions(x, (2, 0, 1)))
+        gram = K.dot(features, K.transpose(features))
+        return gram
 
-# the "style loss" is designed to maintain
-# the style of the reference image in the generated image.
-# It is based on the gram matrices (which capture style) of
-# feature maps from the style reference image
-# and from the generated image
-
-
-def style_loss(style, combination):
-    assert K.ndim(style) == 3
-    assert K.ndim(combination) == 3
-    S = gram_matrix(style)
-    C = gram_matrix(combination)
-    channels = 3
-    size = img_x * img_y
-    return K.sum(K.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
-
-# an auxiliary loss function
-# designed to maintain the "content" of the
-# base image in the generated image
+    # the "style loss" is designed to maintain
+    # the style of the reference image in the generated image.
+    # It is based on the gram matrices (which capture style) of
+    # feature maps from the style reference image
+    # and from the generated image
 
 
-def content_loss(base, combination):
-    return K.sum(K.square(combination - base))
+    def style_loss(style, combination):
+        assert K.ndim(style) == 3
+        assert K.ndim(combination) == 3
+        S = gram_matrix(style)
+        C = gram_matrix(combination)
+        channels = 3
+        size = img_x * img_y
+        return K.sum(K.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
 
-# the 3rd loss function, total variation loss,
-# designed to keep the generated image locally coherent
+    # an auxiliary loss function
+    # designed to maintain the "content" of the
+    # base image in the generated image
 
 
-def total_variation_loss(x):
-    assert K.ndim(x) == 4
-    if K.image_data_format() == 'channels_first':
-        a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
-        b = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, :img_x - 1, 1:])
-    else:
-        a = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, 1:, :img_y - 1, :])
-        b = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, :img_x - 1, 1:, :])
-    return K.sum(K.pow(a + b, 1.25))
+    def content_loss(base, combination):
+        return K.sum(K.square(combination - base))
 
-# combine these loss functions into a single scalar
-loss = K.variable(0.)
-layer_features = outputs_dict['block5_conv2']
-base_image_features = layer_features[0, :, :, :]
-combination_features = layer_features[2, :, :, :]
-loss += content_weight * content_loss(base_image_features,
-                                      combination_features)
+    # the 3rd loss function, total variation loss,
+    # designed to keep the generated image locally coherent
 
-feature_layers = ['block1_conv1', 'block2_conv1',
-                  'block3_conv1', 'block4_conv1',
-                  'block5_conv1']
-for layer_name in feature_layers:
-    layer_features = outputs_dict[layer_name]
-    style_features = layer_features[1, :, :, :]
+
+    def total_variation_loss(x):
+        assert K.ndim(x) == 4
+        if K.image_data_format() == 'channels_first':
+            a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
+            b = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, :img_x - 1, 1:])
+        else:
+            a = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, 1:, :img_y - 1, :])
+            b = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, :img_x - 1, 1:, :])
+        return K.sum(K.pow(a + b, 1.25))
+
+    # combine these loss functions into a single scalar
+    loss = K.variable(0.)
+    layer_features = outputs_dict['block5_conv2']
+    base_image_features = layer_features[0, :, :, :]
     combination_features = layer_features[2, :, :, :]
-    sl = style_loss(style_features, combination_features)
-    loss += (style_weight / len(feature_layers)) * sl
-loss += total_variation_weight * total_variation_loss(combination_img)
-return loss
+    loss += content_weight * content_loss(base_image_features,
+                                          combination_features)
+
+    feature_layers = ['block1_conv1', 'block2_conv1',
+                      'block3_conv1', 'block4_conv1',
+                      'block5_conv1']
+    for layer_name in feature_layers:
+        layer_features = outputs_dict[layer_name]
+        style_features = layer_features[1, :, :, :]
+        combination_features = layer_features[2, :, :, :]
+        sl = style_loss(style_features, combination_features)
+        loss += (style_weight / len(feature_layers)) * sl
+    loss += total_variation_weight * total_variation_loss(combination_img)
+    return loss
 
 # parse content and style input from terminal
 parser = build_parser()
