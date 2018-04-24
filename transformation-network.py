@@ -44,13 +44,13 @@ def build_parser():
     return parser
 
 def preprocess_image(image_path):
-    img = image.load_img(image_path, target_size=(img_nrows, img_ncols))
-    img = img_to_array(img)
+    img = image.load_img(image_path, target_size=(img_x, img_y))
+    img = image.img_to_array(img)
     img = np.expand_dims(img, axis=0)
     img = vgg19.preprocess_input(img)
     return img
 
-def _conv_layer(x, num_filters, kernal_size, strides, padding=None, relu=True):
+def _conv_layer(x, num_filters, kernal_size, strides, padding='same', relu=True):
     x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
                padding=padding,
                input_shape=input_shape)(x)
@@ -59,11 +59,11 @@ def _conv_layer(x, num_filters, kernal_size, strides, padding=None, relu=True):
         x = Activation('relu')(x)
     return x
 
-def _residual_block(x, num_filters=3):
-    tmp = _conv_layer(x, 128, 1)
-    return Add([x, _conv_layer(tmp, 128, num_filters, 1, relu=False)])
+def _residual_block(x, filter_size=3):
+    tmp = _conv_layer(x, 128, filter_size, 1)
+    return Add()([x, _conv_layer(tmp, 128, filter_size, 1, relu=False)])
 
-def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding=None, relu=True):
+def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='valid', relu=True):
     x = Conv2DTranspose(num_filters, kernel_size=kernal_size, strides=strides,
                         padding=padding,
                         input_shape=input_shape)(x)
@@ -177,15 +177,23 @@ def custom_loss_wrapper(style_img):
 
 # load the microsoft COCO image dataset
 imList = []
+img_count = 0
+total_count = len(os.listdir("training/train2014"))
+print(total_count)
 for imageName in sorted(os.listdir("training/train2014")):
-    imList.append(ndimage.imread(dir + os.sep + imageName).transpose((2,0,1)))
+    img = ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName)
+    if img.size==196608:
+        imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName).transpose((2,0,1)))
+    img_count += 1
+    if img_count % (total_count / 1000) == 0:
+        print("0.1% of image loaded")
+        break
 img_train = np.concatenate(imList).astype("float32")
-
 
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
-img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
-input_shape = (img_x, img_y, 1)
+# img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
+input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
 img_train = img_train.astype('float32')
@@ -195,9 +203,9 @@ print(img_train.shape[0], 'train samples')
 
 input1 = Input(shape=input_shape);
 # Convolutional Layers
-conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1), padding="same")
-conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2))
-conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
+conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1))
+conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2), padding="valid")
+conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2), padding="valid")
 
 #Residual blocks
 res1 = _residual_block(conv3, 3)
@@ -217,6 +225,6 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=custom_loss_wrapper(style_image),
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
-model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs)
+model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
 model.save('transfer_model')
