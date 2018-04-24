@@ -63,7 +63,7 @@ def _residual_block(x, filter_size=3):
     tmp = _conv_layer(x, 128, filter_size, 1)
     return Add()([x, _conv_layer(tmp, 128, filter_size, 1, relu=False)])
 
-def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='valid', relu=True):
+def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='same', relu=True):
     x = Conv2DTranspose(num_filters, kernel_size=kernal_size, strides=strides,
                         padding=padding,
                         input_shape=input_shape)(x)
@@ -128,7 +128,7 @@ def custom_loss_wrapper(style_img):
             S = gram_matrix(style)
             C = gram_matrix(combination)
             channels = 3
-            size = img_nrows * img_ncols
+            size = img_x * img_y
             return K.sum(K.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
 
         # an auxiliary loss function
@@ -146,11 +146,11 @@ def custom_loss_wrapper(style_img):
         def total_variation_loss(x):
             assert K.ndim(x) == 4
             if K.image_data_format() == 'channels_first':
-                a = K.square(x[:, :, :img_nrows - 1, :img_ncols - 1] - x[:, :, 1:, :img_ncols - 1])
-                b = K.square(x[:, :, :img_nrows - 1, :img_ncols - 1] - x[:, :, :img_nrows - 1, 1:])
+                a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
+                b = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, :img_x - 1, 1:])
             else:
-                a = K.square(x[:, :img_nrows - 1, :img_ncols - 1, :] - x[:, 1:, :img_ncols - 1, :])
-                b = K.square(x[:, :img_nrows - 1, :img_ncols - 1, :] - x[:, :img_nrows - 1, 1:, :])
+                a = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, 1:, :img_y - 1, :])
+                b = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, :img_x - 1, 1:, :])
             return K.sum(K.pow(a + b, 1.25))
 
         # combine these loss functions into a single scalar
@@ -183,12 +183,13 @@ print(total_count)
 for imageName in sorted(os.listdir("training/train2014")):
     img = ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName)
     if img.size==196608:
-        imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName).transpose((2,0,1)))
+        imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
     if img_count % (total_count / 1000) == 0:
         print("0.1% of image loaded")
         break
 img_train = np.concatenate(imList).astype("float32")
+print(img_train.shape)
 
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
@@ -204,8 +205,8 @@ print(img_train.shape[0], 'train samples')
 input1 = Input(shape=input_shape);
 # Convolutional Layers
 conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1))
-conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2), padding="valid")
-conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2), padding="valid")
+conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2))
+conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
 
 #Residual blocks
 res1 = _residual_block(conv3, 3)
@@ -217,7 +218,7 @@ res5 = _residual_block(res4, 3)
 # Conv2DTranspose / Deconvolutional layers
 deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
 deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
-deconv3 = _conv_transpose_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), relu=False)
+deconv3 = _conv_transpose_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
 output = Activation('tanh')(deconv3)
 
 # Train
