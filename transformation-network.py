@@ -2,7 +2,7 @@
 from __future__ import print_function
 import keras
 from keras import backend as K
-from keras.models import Model
+from keras.models import Model, save_weights
 from keras.preprocessing import image
 from keras.applications import vgg19
 from keras.layers import (Input,
@@ -229,4 +229,4 @@ model.compile(loss=custom_loss_wrapper(style_image),
               metrics=['accuracy'])
 model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
-model.save('transfer_model')
+model.save_weights('transfer_model_weights.h5')
