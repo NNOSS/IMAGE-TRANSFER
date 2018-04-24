@@ -122,7 +122,7 @@ output_path = options.output
 
 # LOAD Model
 content_image = K.variable(preprocess_image(content_path))
-model = load_model(model_path)
+model = load_model(model_path, custom_objects={'custom_loss':custom_loss_wrapper})
 
 # predict output
 output = model.predict(content_image,verbose=1)
