@@ -4,7 +4,7 @@ import keras
 from keras import backend as K
 from keras.models import Model
 from keras.preprocessing import image
-from keras.application import vgg19
+from keras.applications import vgg19
 from keras.layers import (Input,
                           Conv2D,
                           Conv2DTranspose,
