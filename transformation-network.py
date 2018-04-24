@@ -44,7 +44,7 @@ def build_parser():
     return parser
 
 def preprocess_image(image_path):
-    img = load_img(image_path, target_size=(img_nrows, img_ncols))
+    img = image.load_img(image_path, target_size=(img_nrows, img_ncols))
     img = img_to_array(img)
     img = np.expand_dims(img, axis=0)
     img = vgg19.preprocess_input(img)
