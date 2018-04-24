@@ -73,12 +73,13 @@ def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding=None, re
 # parse content and style input from terminal
 parser = build_parser()
 options = parser.parse_args()
-content_path = options.content
 style_path = options.style
-output_path = options.output
 
 # get tensor representations of our images
-content_image = K.variable(preprocess_image(content_path))
+# content_path = options.content
+# output_path = options.output
+# content_image = K.variable(preprocess_image(content_path))
+
 style_image = K.variable(preprocess_image(style_path))
 
 # # this will contain our generated image
