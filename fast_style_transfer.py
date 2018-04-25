@@ -5,6 +5,7 @@ from keras import backend as K
 
 from argparse import ArgumentParser
 import numpy as np
+from scipy import ndimage
 
 img_x, img_y = 256, 256
 content_weight = 0.25
@@ -125,12 +126,14 @@ model_path = options.model
 output_path = options.output
 
 # LOAD Model
-content_image = K.variable(preprocess_image(content_path))
+imList = []
+imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/"+ content_path, mode="RGB").transpose((2,0,1)))
+content_image = np.asarray(imList, dtype="float32")
+content_image= content_image.reshape(content_image.shape[0], img_x, img_y, 3)
+# content_image = K.variable(preprocess_image(content_path))
 style_img = K.variable(preprocess_image(style_path))
 model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
-print(np.array(content_image.shape))
-print(type(content_image))
 output = model.predict(content_image,verbose=1)
 print(output.shape)
