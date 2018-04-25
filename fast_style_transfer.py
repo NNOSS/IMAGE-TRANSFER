@@ -1,11 +1,15 @@
 from keras.models import load_model
 from keras.preprocessing import image
+from keras.applications import vgg19
 from keras import backend as K
 
 from argparse import ArgumentParser
 import numpy as np
 
 img_x, img_y = 256, 256
+content_weight = 0.25
+style_weight = 1.0
+total_variation_weight = 1e-6
 
 def build_parser():
     parser = ArgumentParser()
@@ -24,6 +28,7 @@ def preprocess_image(image_path):
     img = image.load_img(image_path, target_size=(img_x, img_y))
     img = image.img_to_array(img)
     img = np.expand_dims(img, axis=0)
+    img = vgg19.preprocess_input(img)
     return img
 
 # custon loss function for reference
@@ -125,5 +130,7 @@ style_img = K.variable(preprocess_image(style_path))
 model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
+print(np.array(content_image.shape))
+print(type(content_image))
 output = model.predict(content_image,verbose=1)
 print(output.shape)

@@ -185,15 +185,14 @@ for imageName in sorted(os.listdir("training/train2014")):
     if img.size==196608:
         imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
-    if img_count % (total_count / 1000) == 0:
-        print("0.1% of image loaded")
-        break
-img_train = np.concatenate(imList).astype("float32")
+    if img_count % (total_count / 100) == 0:
+        print("1% of image loaded")
+img_train = np.asarray(imList, dtype="float32")
 print(img_train.shape)
 
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
-# img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
+img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
 input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
@@ -228,4 +227,4 @@ model.compile(loss=custom_loss_wrapper(style_image),
               metrics=['accuracy'])
 model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
-model.save('transfer_model.h5')
+model.save('transfer_model_complete.h5')
