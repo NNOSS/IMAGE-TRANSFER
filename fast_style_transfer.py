@@ -6,6 +6,7 @@ from keras import backend as K
 from argparse import ArgumentParser
 import numpy as np
 from scipy import ndimage
+from PIL import Image
 
 img_x, img_y = 256, 256
 content_weight = 0.25
@@ -136,4 +137,5 @@ model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
 output = model.predict(content_image,verbose=1)
-print(output.shape)
+output_img = Image.fromarray(output, 'RGB')
+output_img.save(output_path)
