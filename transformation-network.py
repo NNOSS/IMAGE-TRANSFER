@@ -97,7 +97,7 @@ class LossCalculator:
 
         # build the VGG16 network with our 3 images as input
         # the model will be loaded with pre-trained ImageNet weights
-        vgg = vgg19.VGG19(input_tensor=input_tensor,weights='imamgenet', include_top=False)
+        vgg = vgg19.VGG19(input_tensor=input_tensor,weights='imagenet', include_top=False)
         # # TODO: separate model definition from loss calculation
         # vgg = vgg19.VGG19(input_tensor=input_tensor,
         #                     weights='imagenet', include_top=False)
@@ -132,7 +132,7 @@ class LossCalculator:
         # designed to maintain the "content" of the
         # base image in the generated image
         def content_loss(base, combination):
-            img_size = base.shape[0]*base.shape[1]*base.shape[3]
+            img_size = base.shape[0]*base.shape[1]*base.shape[2]
             return 2*K.sum(K.square(combination - base))/img_size
 
         # the 3rd loss function, total variation loss,
@@ -175,7 +175,7 @@ total_count = len(os.listdir("training/train2014"))
 print(total_count)
 for imageName in sorted(os.listdir("training/train2014")):
     img = ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName)
-    if img.size==196608:
+    if img.size==196608: # checking if img has 3-channel color, so 256*256*3 = 196608
         imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
     if img_count % (total_count / 1000) == 0:
@@ -219,7 +219,7 @@ output = Activation('tanh')(deconv3)
 
 # Train
 model = Model(inputs=input1, outputs=output)
-model.compile(loss=loss_calculator.custom_loss(),
+model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1)
