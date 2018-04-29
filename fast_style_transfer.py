@@ -9,8 +9,8 @@ from scipy import ndimage
 from PIL import Image
 
 img_x, img_y = 256, 256
-content_weight = 0.25
-style_weight = 1.0
+content_weight = 1
+style_weight = 5
 total_variation_weight = 1e-6
 
 def build_parser():

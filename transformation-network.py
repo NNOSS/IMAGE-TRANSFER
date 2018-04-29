@@ -97,7 +97,7 @@ class LossCalculator:
 
         # build the VGG16 network with our 3 images as input
         # the model will be loaded with pre-trained ImageNet weights
-        vgg = self.vgg19(input_tensor=input_tensor)
+        vgg = vgg19.VGG19(input_tensor=input_tensor,weights='imamgenet', include_top=False)
         # # TODO: separate model definition from loss calculation
         # vgg = vgg19.VGG19(input_tensor=input_tensor,
         #                     weights='imagenet', include_top=False)
@@ -125,15 +125,15 @@ class LossCalculator:
             assert K.ndim(combination) == 3
             S = gram_matrix(style)
             C = gram_matrix(combination)
-            channels = 3
-            size = img_x * img_y
-            return K.sum(K.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
+            img_size = style.shape[0]*style.shape[1]*style_shape[2]
+            return 2 * K.sum(K.square(S - C)) / img_size
 
         # an auxiliary loss function
         # designed to maintain the "content" of the
         # base image in the generated image
         def content_loss(base, combination):
-            return K.sum(K.square(combination - base))
+            img_size = base.shape[0]*base.shape[1]*base.shape[3]
+            return 2*K.sum(K.square(combination - base))/img_size
 
         # the 3rd loss function, total variation loss,
         # designed to keep the generated image locally coherent
