@@ -51,9 +51,13 @@ def preprocess_image(image_path):
     return img
 
 def _conv_layer(x, num_filters, kernal_size, strides, padding='same', relu=True, input_shape=None):
-    x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
-               padding=padding,
-               input_shape=input_shape)(x)
+    if input_shape == None:
+        x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
+                   padding=padding)(x)
+    else:
+        x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
+                   padding=padding,
+                   input_shape=input_shape)(x)
     x = BatchNormalization(axis=1)(x)
     if(relu):
         x = Activation('relu')(x)
