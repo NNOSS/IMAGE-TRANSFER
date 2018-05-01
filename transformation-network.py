@@ -10,7 +10,7 @@ from keras.layers import (Input,
                           Conv2DTranspose,
                           Activation,
                           BatchNormalization,
-                          Add
+                          Add,
                           Lambda)
 
 from argparse import ArgumentParser
@@ -59,7 +59,7 @@ def _conv_layer(x, num_filters, kernal_size, strides, padding='same', relu=True,
         x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
                    padding=padding,
                    input_shape=input_shape)(x)
-    x = BatchNormalization(axis=1)(x)
+    x = BatchNormalization(axis=-1)(x)
     if(relu):
         x = Activation('relu')(x)
     return x
@@ -71,7 +71,7 @@ def _residual_block(x, filter_size=3):
 def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='same', relu=True):
     x = Conv2DTranspose(num_filters, kernel_size=kernal_size, strides=strides,
                         padding=padding)(x)
-    x = BatchNormalization(axis=1)(x)
+    x = BatchNormalization(axis=-1)(x)
     if (relu):
         x = Activation('relu')(x)
     return x
