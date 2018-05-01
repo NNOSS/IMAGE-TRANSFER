@@ -10,7 +10,8 @@ from keras.layers import (Input,
                           Conv2DTranspose,
                           Activation,
                           BatchNormalization,
-                          Add)
+                          Add
+                          Lambda)
 
 from argparse import ArgumentParser
 from scipy import ndimage
@@ -222,7 +223,8 @@ deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), stri
 deconv3 = _conv_transpose_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
 pred = Activation('tanh')(deconv3)
 output = Add()([pred, input1])
-# output = Activation('tanh')(output) * 127.5 + 255./2
+output = Activation('tanh')(output)
+output = Lambda(lambda x: x*127.5 + 255./2)(output)
 
 # Train
 model = Model(inputs=input1, outputs=output)

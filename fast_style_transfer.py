@@ -140,7 +140,6 @@ model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
 output = model.predict(content_image,verbose=1)
-output = Activation('tanh')(output) * 127.5 + 255./2
 print(output[0].shape)
 output_img = Image.fromarray(output[0], 'RGB')
 output_img.save(output_path)
