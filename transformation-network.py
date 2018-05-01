@@ -18,7 +18,7 @@ import numpy as np
 import os
 
 batch_size = 4
-epochs = 10000 
+epochs = 5
 learning_rate = 1e-3
 
 
@@ -68,6 +68,8 @@ def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='same', 
                         padding=padding,
                         input_shape=input_shape)(x)
     x = BatchNormalization(axis=1)(x)
+    if (relu):
+        x = Activation('relu')(x)
     return x
 
 # parse content and style input from terminal
@@ -215,7 +217,9 @@ res5 = _residual_block(res4, 3)
 deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
 deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
 deconv3 = _conv_transpose_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
-output = Activation('tanh')(deconv3)
+pred = Activation('tanh')(deconv3)
+output = Add()([pred, input1])
+output = K.mul(Activation('tanh') * 127.5 + 255. / 2
 
 # Train
 model = Model(inputs=input1, outputs=output)
