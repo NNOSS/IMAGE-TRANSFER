@@ -18,7 +18,7 @@ import numpy as np
 import os
 
 batch_size = 4
-epochs = 5
+epochs = 10000 
 learning_rate = 1e-3
 
 
@@ -125,14 +125,14 @@ class LossCalculator:
             assert K.ndim(combination) == 3
             S = gram_matrix(style)
             C = gram_matrix(combination)
-            img_size = style.shape[0]*style.shape[1]*style_shape[2]
+            img_size = style.shape[0].value*style.shape[1].value*style.shape[2].value
             return 2 * K.sum(K.square(S - C)) / img_size
 
         # an auxiliary loss function
         # designed to maintain the "content" of the
         # base image in the generated image
         def content_loss(base, combination):
-            img_size = base.shape[0]*base.shape[1]*base.shape[2]
+            img_size = base.shape[0].value*base.shape[1].value*base.shape[2].value
             return 2*K.sum(K.square(combination - base))/img_size
 
         # the 3rd loss function, total variation loss,
