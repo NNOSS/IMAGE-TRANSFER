@@ -50,7 +50,7 @@ def preprocess_image(image_path):
     img = vgg19.preprocess_input(img)
     return img
 
-def _conv_layer(x, num_filters, kernal_size, strides, padding='same', relu=True):
+def _conv_layer(x, num_filters, kernal_size, strides, padding='same', relu=True, input_shape=None):
     x = Conv2D(num_filters, kernel_size=kernal_size, strides=strides,
                padding=padding,
                input_shape=input_shape)(x)
@@ -65,8 +65,7 @@ def _residual_block(x, filter_size=3):
 
 def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='same', relu=True):
     x = Conv2DTranspose(num_filters, kernel_size=kernal_size, strides=strides,
-                        padding=padding,
-                        input_shape=input_shape)(x)
+                        padding=padding)(x)
     x = BatchNormalization(axis=1)(x)
     if (relu):
         x = Activation('relu')(x)
@@ -196,13 +195,13 @@ input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
 img_train = img_train.astype('float32')
-img_train /= 255
+img_train /= 255.
 print('x_train shape:', img_train.shape)
 print(img_train.shape[0], 'train samples')
 
 input1 = Input(shape=input_shape);
 # Convolutional Layers
-conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1))
+conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1), input_shape=input_shape)
 conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2))
 conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
 
