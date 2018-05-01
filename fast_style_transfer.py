@@ -2,6 +2,7 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications import vgg19
 from keras import backend as K
+from keras.layers import Activation
 
 from argparse import ArgumentParser
 import numpy as np
@@ -139,6 +140,7 @@ model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
 output = model.predict(content_image,verbose=1)
+output = Activation('tanh')(output) * 127.5 + 255./2
 print(output[0].shape)
 output_img = Image.fromarray(output[0], 'RGB')
 output_img.save(output_path)

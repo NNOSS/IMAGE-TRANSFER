@@ -18,7 +18,7 @@ import numpy as np
 import os
 
 batch_size = 4
-epochs = 5
+epochs = 10
 learning_rate = 1e-3
 
 
