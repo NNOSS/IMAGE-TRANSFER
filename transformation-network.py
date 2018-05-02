@@ -12,6 +12,7 @@ from keras.layers import (Input,
                           BatchNormalization,
                           Add,
                           Lambda)
+from keras.callbacks import TensorBoard
 
 from argparse import ArgumentParser
 from scipy import ndimage
@@ -19,7 +20,7 @@ import numpy as np
 import os
 
 batch_size = 4
-epochs = 10
+epochs = 5
 learning_rate = 1e-3
 
 
@@ -231,6 +232,7 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
-model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1)
+tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard])
 
 model.save('transfer_model_partial.h5')
