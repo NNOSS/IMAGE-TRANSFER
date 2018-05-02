@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+
 import keras
 from keras import backend as K
 from keras.models import Model
@@ -19,7 +22,7 @@ import tensorflow as tf
 from argparse import ArgumentParser
 from scipy import ndimage
 import numpy as np
-import os
+import time
 
 batch_size = 4
 epochs = 5
