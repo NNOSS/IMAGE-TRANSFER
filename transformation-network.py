@@ -150,7 +150,7 @@ class LossCalculator:
         # the 3rd loss function, total variation loss,
         # designed to keep the generated image locally coherent
         def total_variation_loss(x):
-            assert K.ndim(x) == 4 
+            assert K.ndim(x) == 4
             img_size = 1
             if K.image_data_format() == 'channels_first':
                 a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
@@ -194,8 +194,9 @@ for imageName in sorted(os.listdir("training/train2014")):
     if img_count % (total_count / 1000) == 0:
         print("0.1% of image loaded")
         break
+print('imList shape' + str(imList.shape))
 img_train = np.asarray(imList, dtype="float32")
-print(img_train.shape)
+print('img_train shape1' + str(img_train.shape))
 
 # define loss calculator
 loss_calculator = LossCalculator(style_image)
@@ -203,12 +204,13 @@ loss_calculator = LossCalculator(style_image)
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
 img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
+print('img_train shape2 + str(img_train.shape))
 input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
 img_train = img_train.astype('float32')
 img_train /= 255.
-print('x_train shape:', img_train.shape)
+print('x_train shape3:', img_train.shape)
 print(img_train.shape[0], 'train samples')
 
 input1 = Input(shape=input_shape);
