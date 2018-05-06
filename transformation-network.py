@@ -152,7 +152,8 @@ class LossCalculator:
         def total_variation_loss(x):
             assert K.ndim(x) == 4
             print(x.shape)
-            img_size = x.shape[3].value * x.shape[1].value * x.shape[2].value
+            # img_size = x.shape[3].value * x.shape[1].value * x.shape[2].value
+            img_size = 1
             if K.image_data_format() == 'channels_first':
                 a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
                 b = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, :img_x - 1, 1:])
