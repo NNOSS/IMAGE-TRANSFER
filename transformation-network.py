@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 import keras
 from keras import backend as K
@@ -151,13 +151,15 @@ class LossCalculator:
         # designed to keep the generated image locally coherent
         def total_variation_loss(x):
             assert K.ndim(x) == 4
+            print(x.shape)
+            img_size = x.shape[3].value * x.shape[1].value * x.shape[2].value
             if K.image_data_format() == 'channels_first':
                 a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
                 b = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, :img_x - 1, 1:])
             else:
                 a = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, 1:, :img_y - 1, :])
                 b = K.square(x[:, :img_x - 1, :img_y - 1, :] - x[:, :img_x - 1, 1:, :])
-            return K.sum(K.pow(a + b, 1.25))
+            return K.sum(K.pow(a + b, 1.25)) / img_size
 
         # combine these loss functions into a single scalar
         loss = K.variable(0.)
@@ -237,7 +239,7 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
-tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+tensorboard = TensorBoard(log_dir="./logs", write_images=True)
 model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard])
 
 model.save('transfer_model_partial.h5')
