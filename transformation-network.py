@@ -240,7 +240,7 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
-tensorboard = TensorBoard(log_dir="./logs", write_images=True)
-model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard])
-
+tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
+tensorboard.set_model(model)
+history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard]).history
 model.save('transfer_model_partial.h5')
