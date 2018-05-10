@@ -130,16 +130,19 @@ output_path = options.output
 # LOAD Model
 imList = []
 input_img = Image.open("/home/yjiang/IMAGE-TRANSFER/"+ content_path)
-input_img = np.asarray(input_img).transpose((2,0,1))
+input_img = np.asarray(input_img)
+print('input'+str(input_img.shape))
 imList.append(input_img)
 content_image = np.asarray(imList, dtype='float32')
-content_image= content_image.reshape(content_image.shape[0], img_x, img_y, 3)
+# content_image= content_image.reshape(content_image.shape[0], img_x, img_y, 3)
 # content_image = K.variable(preprocess_image(content_path))
 style_img = K.variable(preprocess_image(style_path))
 model = load_model(model_path, custom_objects={'custom_loss':custom_loss})
 
 # predict output
 output = model.predict(content_image,verbose=1)
-print(output[0].shape)
-output_img = Image.fromarray(output[0], 'RGB')
-output_img.save(output_path)
+# content_image = content_image[0].transpose((2,1,0))
+print(content_image[0].shape)
+output = np.asarray(output, dtype='uint8')
+output = Image.fromarray(output[0], 'RGB')
+output.save(output_path)
