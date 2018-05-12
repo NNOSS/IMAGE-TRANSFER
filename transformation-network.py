@@ -124,7 +124,9 @@ class LossCalculator:
                 features = K.batch_flatten(x)
             else:
                 features = K.batch_flatten(K.permute_dimensions(x, (2, 0, 1)))
-            gram = K.dot(features, K.transpose(features))
+            img_size = 256 * 256 * 3
+            gram = K.dot(features, K.transpose(features)) / img_size
+            print(gram)
             return gram
 
         # the "style loss" is designed to maintain
@@ -235,7 +237,8 @@ deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), 
 pred = Activation('tanh')(deconv3)
 output = Add()([pred, input1])
 output = Activation('tanh')(output)
-output = Lambda(lambda x: x*127.5 + 255./2)(output)
+output = K.map_fn(lambda x: x*127.5+255./2, output)
+# output = Lambda(lambda x: x*127.5 + 255./2)(output)
 
 # Train
 model = Model(inputs=input1, outputs=output)
@@ -247,4 +250,3 @@ tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, 
 tensorboard.set_model(model)
 history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
 model.save('transfer_model_partial.h5')
-
