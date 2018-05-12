@@ -227,6 +227,7 @@ res3 = _residual_block(res2, 3)
 res4 = _residual_block(res3, 3)
 res5 = _residual_block(res4, 3)
 
+
 # Conv2DTranspose / Deconvolutional layers
 deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
 deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
@@ -241,7 +242,9 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
-tensorboard = TensorBoard(log_dir="./logs", write_images=True)
-model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard])
 
-model.save('transfer_model_partial.h5')         
+tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
+tensorboard.set_model(model)
+history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
+model.save('transfer_model_partial.h5')
+
