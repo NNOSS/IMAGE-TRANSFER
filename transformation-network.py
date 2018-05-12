@@ -151,8 +151,6 @@ class LossCalculator:
         # designed to keep the generated image locally coherent
         def total_variation_loss(x):
             assert K.ndim(x) == 4
-            print(x.shape)
-            # img_size = x.shape[3].value * x.shape[1].value * x.shape[2].value
             img_size = 1
             if K.image_data_format() == 'channels_first':
                 a = K.square(x[:, :, :img_x - 1, :img_y - 1] - x[:, :, 1:, :img_y - 1])
@@ -179,7 +177,7 @@ class LossCalculator:
             combination_features = layer_features[2, :, :, :]
             sl = style_loss(style_features, combination_features)
             loss += (style_weight / len(feature_layers)) * sl
-        loss += total_variation_weight * total_variation_loss(combination_img)
+        # loss += total_variation_weight * total_variation_loss(combination_img)
         return loss
 
 
@@ -189,15 +187,17 @@ img_count = 0
 total_count = len(os.listdir("training/train2014"))
 print(total_count)
 for imageName in sorted(os.listdir("training/train2014")):
-    img = ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName)
+    print(imageName)
+    img = ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName)
     if img.size==196608: # checking if img has 3-channel color, so 256*256*3 = 196608
-        imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
+        imList.append(ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
-    if img_count % (total_count / 1000) == 0:
-        print("0.1% of image loaded")
+    if img_count % (total_count / 100) == 0:
+        print("1% of image loaded")
         break
+print('imList shape' + str(len(imList)))
 img_train = np.asarray(imList, dtype="float32")
-print(img_train.shape)
+print('img_train shape1' + str(img_train.shape))
 
 # define loss calculator
 loss_calculator = LossCalculator(style_image)
@@ -205,12 +205,13 @@ loss_calculator = LossCalculator(style_image)
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, RGB colour images would have 3
 img_train = img_train.reshape(img_train.shape[0], img_x, img_y, 3)
+print('img_train shape2' + str(img_train.shape))
 input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
 img_train = img_train.astype('float32')
 img_train /= 255.
-print('x_train shape:', img_train.shape)
+print('x_train shape3:', img_train.shape)
 print(img_train.shape[0], 'train samples')
 
 input1 = Input(shape=input_shape);
@@ -226,8 +227,9 @@ res3 = _residual_block(res2, 3)
 res4 = _residual_block(res3, 3)
 res5 = _residual_block(res4, 3)
 
-#Conv2DTranspose / Deconvolutional layers
-deconv1 = _conv_transpose_layer(conv3, num_filters=64, kernal_size=(3,3), strides=(2,2))
+
+# Conv2DTranspose / Deconvolutional layers
+deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
 deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
 deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
 pred = Activation('tanh')(deconv3)
@@ -240,7 +242,9 @@ model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
+
 tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
 tensorboard.set_model(model)
 history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
 model.save('transfer_model_partial.h5')
+
