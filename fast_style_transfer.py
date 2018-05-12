@@ -129,7 +129,7 @@ output_path = options.output
 
 # LOAD Model
 imList = []
-input_img = Image.open("/home/yjiang/IMAGE-TRANSFER/"+ content_path)
+input_img = Image.open("/home/nnoss/IMAGE-TRANSFER/"+ content_path)
 input_img = np.asarray(input_img)
 print('input'+str(input_img.shape))
 imList.append(input_img)

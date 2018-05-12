@@ -177,7 +177,7 @@ class LossCalculator:
             combination_features = layer_features[2, :, :, :]
             sl = style_loss(style_features, combination_features)
             loss += (style_weight / len(feature_layers)) * sl
-        loss += total_variation_weight * total_variation_loss(combination_img)
+        # loss += total_variation_weight * total_variation_loss(combination_img)
         return loss
 
 
@@ -187,12 +187,13 @@ img_count = 0
 total_count = len(os.listdir("training/train2014"))
 print(total_count)
 for imageName in sorted(os.listdir("training/train2014")):
-    img = ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName)
+    print(imageName)
+    img = ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName)
     if img.size==196608: # checking if img has 3-channel color, so 256*256*3 = 196608
-        imList.append(ndimage.imread("/home/yjiang/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
+        imList.append(ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
-    if img_count % (total_count / 1000) == 0:
-        print("0.1% of image loaded")
+    if img_count % (total_count / 100) == 0:
+        print("1% of image loaded")
         break
 print('imList shape' + str(len(imList)))
 img_train = np.asarray(imList, dtype="float32")
@@ -232,8 +233,8 @@ deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), stri
 deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
 pred = Activation('tanh')(deconv3)
 output = Add()([pred, input1])
-# output = Activation('tanh')(output)
-# output = Lambda(lambda x: x*127.5 + 255./2)(output)
+output = Activation('tanh')(output)
+output = Lambda(lambda x: x*127.5 + 255./2)(output)
 
 # Train
 model = Model(inputs=input1, outputs=output)
@@ -243,4 +244,4 @@ model.compile(loss=loss_calculator.custom_loss,
 tensorboard = TensorBoard(log_dir="./logs", write_images=True)
 model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard])
 
-model.save('transfer_model_half.h5')
+model.save('transfer_model_partial.h5')         
