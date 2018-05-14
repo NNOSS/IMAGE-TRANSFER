@@ -235,12 +235,12 @@ conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
 deconv1 = _conv_transpose_layer(conv3, num_filters=64, kernal_size=(3,3), strides=(2,2))
 deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
 deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
-# pred = Activation('tanh')(deconv3)
-# output = Add()([pred, input1])
-# output = Activation('tanh')(output)
-# output = K.map_fn(lambda x: x*127.5+255./2, output)
+pred = Activation('tanh')(deconv3)
+output = Add()([pred, input1])
+output = Activation('tanh')(output)
+output = K.map_fn(lambda x: x*127.5+255./2, output)
 # output = Lambda(lambda x: x*127.5 + 255./2)(output)
-output = deconv3
+
 # Train
 model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
@@ -250,4 +250,4 @@ model.compile(loss=loss_calculator.custom_loss,
 tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
 tensorboard.set_model(model)
 history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
-model.save('transfer_model_convdeconv.h5')
+model.save('transfer_model_convdeconvtanh.h5')
