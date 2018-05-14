@@ -218,28 +218,28 @@ print(img_train.shape[0], 'train samples')
 
 input1 = Input(shape=input_shape);
 # Convolutional Layers
-conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1), input_shape=input_shape)
-conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2))
-conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
+# conv1 = _conv_layer(input1, num_filters=32, kernal_size=(9,9), strides=(1,1), input_shape=input_shape)
+# conv2 = _conv_layer(conv1, num_filters=64, kernal_size=(3,3), strides=(2,2))
+# conv3 = _conv_layer(conv2, num_filters=128, kernal_size=(3,3), strides=(2,2))
 
 #Residual blocks
-res1 = _residual_block(conv3, 3)
-res2 = _residual_block(res1, 3)
-res3 = _residual_block(res2, 3)
-res4 = _residual_block(res3, 3)
-res5 = _residual_block(res4, 3)
+# res1 = _residual_block(conv3, 3)
+# res2 = _residual_block(res1, 3)
+# res3 = _residual_block(res2, 3)
+# res4 = _residual_block(res3, 3)
+# res5 = _residual_block(res4, 3)
 
 
 # Conv2DTranspose / Deconvolutional layers
-deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
-deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
-deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
-pred = Activation('tanh')(deconv3)
-output = Add()([pred, input1])
-output = Activation('tanh')(output)
-output = K.map_fn(lambda x: x*127.5+255./2, output)
+# deconv1 = _conv_transpose_layer(res5, num_filters=64, kernal_size=(3,3), strides=(2,2))
+# deconv2 = _conv_transpose_layer(deconv1, num_filters=32, kernal_size=(3,3), strides=(2,2))
+# deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), padding="same", relu=False)
+# pred = Activation('tanh')(deconv3)
+# output = Add()([pred, input1])
+# output = Activation('tanh')(output)
+# output = K.map_fn(lambda x: x*127.5+255./2, output)
 # output = Lambda(lambda x: x*127.5 + 255./2)(output)
-
+output = input1
 # Train
 model = Model(inputs=input1, outputs=output)
 model.compile(loss=loss_calculator.custom_loss,
@@ -249,4 +249,4 @@ model.compile(loss=loss_calculator.custom_loss,
 tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
 tensorboard.set_model(model)
 history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
-model.save('transfer_model_partial.h5')
+model.save('transfer_model_nolayer.h5')
