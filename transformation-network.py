@@ -82,6 +82,45 @@ def _conv_transpose_layer(x, num_filters, kernal_size, strides, padding='same', 
         x = Activation('relu')(x)
     return x
 
+def make_image(tensor):
+    """
+    Convert an numpy representation image to Image protobuf.
+    Copied from https://github.com/lanpa/tensorboard-pytorch/
+    """
+    from PIL import Image
+    height, width, channel = tensor.shape
+    image = Image.fromarray(tensor)
+    import io
+    output = io.BytesIO()
+    image.save(output, format='PNG')
+    image_string = output.getvalue()
+    output.close()
+    return tf.Summary.Image(height=height,
+                         width=width,
+                         colorspace=channel,
+                         encoded_image_string=image_string)
+
+class TensorBoardImage(keras.callbacks.Callback):
+    def __init__(self, tag):
+        super().__init__()
+        self.tag = tag
+
+    def on_epoch_end(self, epoch, logs={}):
+        # Load image
+        img = data.astronaut()
+        # Do something to the image
+        img = (255 * skimage.util.random_noise(img)).astype('uint8')
+
+        image = make_image(img)
+        summary = tf.Summary(value=[tf.Summary.Value(tag=self.tag, image=image)])
+        writer = tf.summary.FileWriter('./logs')
+        writer.add_summary(summary, epoch)
+        writer.close()
+
+        return
+
+tbi_callback = TensorBoardImage('Image Example')
+
 # parse content and style input from terminal
 parser = build_parser()
 options = parser.parse_args()
@@ -248,5 +287,5 @@ model.compile(loss=loss_calculator.custom_loss,
 
 tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
 tensorboard.set_model(model)
-history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
+history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard, tbi_callback], validation_data=([img_train, img_train])).history
 model.save('transfer_model_partial.h5')
