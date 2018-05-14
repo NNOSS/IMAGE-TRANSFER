@@ -179,7 +179,7 @@ class LossCalculator:
             combination_features = layer_features[2, :, :, :]
             sl = style_loss(style_features, combination_features)
             loss += (style_weight / len(feature_layers)) * sl
-        # loss += total_variation_weight * total_variation_loss(combination_img)
+        loss += total_variation_weight * total_variation_loss(combination_img)
         return loss
 
 
@@ -194,7 +194,7 @@ for imageName in sorted(os.listdir("training/train2014")):
     if img.size==196608: # checking if img has 3-channel color, so 256*256*3 = 196608
         imList.append(ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
-    if img_count % (total_count / 100) == 0:
+    if img_count % (total_count/3) == 0:
         print("1% of image loaded")
         break
 print('imList shape' + str(len(imList)))
@@ -237,8 +237,8 @@ deconv3 = _conv_layer(deconv2, num_filters=3, kernal_size=(9,9), strides=(1,1), 
 pred = Activation('tanh')(deconv3)
 output = Add()([pred, input1])
 output = Activation('tanh')(output)
-output = K.map_fn(lambda x: x*127.5+255./2, output)
-# output = Lambda(lambda x: x*127.5 + 255./2)(output)
+# output = K.map_fn(lambda x: x*127.5+255./2, output)
+output = Lambda(lambda x: x*127.5 + 255./2)(output)
 
 # Train
 model = Model(inputs=input1, outputs=output)
@@ -249,4 +249,4 @@ model.compile(loss=loss_calculator.custom_loss,
 tensorboard = TensorBoard(log_dir="./logs", histogram_freq=1, write_graph=True, write_images=True)
 tensorboard.set_model(model)
 history = model.fit(x=img_train, y=img_train, batch_size=batch_size, epochs=epochs, verbose=1, callbacks=[tensorboard], validation_data=([img_train, img_train])).history
-model.save('transfer_model_partial.h5')
+model.save('transfer_one_third.h5')
