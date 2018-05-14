@@ -194,7 +194,7 @@ for imageName in sorted(os.listdir("training/train2014")):
     if img.size==196608: # checking if img has 3-channel color, so 256*256*3 = 196608
         imList.append(ndimage.imread("/home/nnoss/IMAGE-TRANSFER/training/train2014/" + imageName, mode="RGB").transpose((2,0,1)))
     img_count += 1
-    if img_count % (total_count / 100) == 0:
+    if img_count % (total_count / 1000) == 0:
         print("1% of image loaded")
         break
 print('imList shape' + str(len(imList)))
